@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Memorice Musical - Prof. Matías Poblete</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700;900&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        @font-face {
+            font-family: 'Bravura';
+            src: url('https://w3c.github.io/smufl/fonts/bravura/Bravura.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        :root {
+            /* Colores inspirados en Mario y Super Ritmo */
+            --bg-color: #fff9c4; 
+            --surface: #ffffff;
+            --text-main: #2c3e50;
+            --primary: #2c3e50;
+            --accent: #049CD8;   /* Azul Mario */
+            --accent-hover: #0082c3;
+            --success: #43B047;  /* Verde Mario */
+            --error: #E52521;    /* Rojo Mario */
+            --btn-lvl2: #FBD000; /* Amarillo Mario */
+            --border-radius: 24px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#fff176 15%, transparent 15%);
+            background-size: 30px 30px;
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* --- CONTENEDOR PRINCIPAL ESTILO MARIO --- */
+        .app-container {
+            background: var(--surface);
+            padding: 2.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 20px 0px #fbc02d, 0 25px 40px rgba(0,0,0,0.1);
+            border: 5px solid #fff;
+            border-bottom: 12px solid #ffb300;
+            border-bottom-right-radius: 60px;
+            width: 100%;
+            max-width: 900px;
+            text-align: center;
+            position: relative;
+            z-index: 10; /* Sobre el fondo animado */
+        }
+
+        /* --- TÍTULO --- */
+        h1.mario-title { 
+            font-family: 'Fredoka', sans-serif; 
+            font-weight: 900; 
+            font-size: 4rem; 
+            margin-bottom: 1.5rem; 
+            letter-spacing: 2px;
+            line-height: 1.1;
+            text-shadow: 
+                -4px -4px 0 #000,  
+                 4px -4px 0 #000,
+                -4px  4px 0 #000,
+                 4px  4px 0 #000,
+                 0px  6px 0 #000,
+                 0px 15px 10px rgba(0,0,0,0.3);
+        }
+
+        .mario-title span { display: inline-block; }
+        .mario-title span:nth-child(even) { transform: rotate(3deg) translateY(-3px); }
+        .mario-title span:nth-child(odd) { transform: rotate(-3deg) translateY(3px); }
+
+        .m-red { color: #E52521; }
+        .m-blue { color: #049CD8; }
+        .m-yellow { color: #FBD000; }
+        .m-green { color: #43B047; }
+
+        /* --- PANEL DE CONTROL SUPERIOR --- */
+        .game-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            background: #f4faff;
+            border: 4px solid var(--accent);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 0 rgba(4, 156, 216, 0.2);
+        }
+
+        .timer-box {
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .timer-label {
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 1.2rem;
+            text-transform: uppercase;
+        }
+
+        .timer-display {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: var(--text-main);
+            margin-bottom: 5px;
+            line-height: 1;
+            transition: color 0.3s;
+        }
+        
+        .fuse-bar {
+            width: 100%; height: 15px; background-color: #fff;
+            border-radius: 10px; border: 3px solid #000; overflow: hidden;
+        }
+
+        .fuse-burn {
+            height: 100%; width: 100%;
+            background: linear-gradient(to right, #FBD000, #E52521);
+            transition: width 1s linear;
+            transform-origin: left;
+        }
+
+        /* --- Botones --- */
+        .action-buttons {
+            display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; 
+        }
+
+        .btn-main {
+            border: 4px solid #000;
+            padding: 12px 28px;
+            font-size: 1.2rem;
+            font-weight: 900;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.1s;
+            font-family: 'Fredoka', sans-serif;
+            color: white;
+            position: relative;
+            top: 0;
+            box-shadow: 0 6px 0px #000;
+            text-shadow: 1px 1px 0 #000;
+            text-transform: uppercase;
+        }
+        
+        .btn-main:active {
+            top: 6px;
+            box-shadow: 0 0px 0px #000;
+        }
+
+        #start-button { background-color: var(--success); }
+        #reset-button { background-color: var(--error); }
+        
+        /* --- Tablero y Cartas --- */
+        .game-board {
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            grid-template-rows: repeat(2, 1fr); 
+            gap: 15px; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            padding: 10px;
+        }
+
+        .card {
+            height: 120px; 
+            cursor: pointer; 
+            perspective: 1000px; 
+            position: relative; 
+            transition: transform 0.2s;
+        }
+
+        .card:hover:not(.flipped):not(.matched) {
+            transform: scale(1.05);
+        }
+
+        .card-face, .card-back { 
+            position: absolute; width: 100%; height: 100%; 
+            backface-visibility: hidden; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            border-radius: 15px; padding: 5px; box-sizing: border-box; 
+            border: 4px solid #000;
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        /* Reverso (El bloque amarillo) */
+        .card-back { 
+            background-color: var(--btn-lvl2); 
+            color: #000; 
+            font-size: 3.5em; 
+            transform: rotateY(0deg); 
+            box-shadow: 0 6px 0px #000; /* Sombra 3D */
+        }
+        
+        /* Frente (El pentagrama) */
+        .card-face { 
+            background-color: white; 
+            transform: rotateY(180deg); 
+            box-shadow: 0 6px 0px #000;
+        }
+
+        .card.flipped .card-back { transform: rotateY(-180deg); }
+        .card.flipped .card-face { transform: rotateY(0deg); }
+        
+        .card.matched {
+            opacity: 0.5; 
+            pointer-events: none; 
+            transform: scale(0.95);
+        }
+
+        /* --- PANTALLA DE FIN DE JUEGO FANTÁSTICA --- */
+        #game-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            opacity: 0; visibility: hidden;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 2000; 
+            transition: opacity 0.3s;
+        }
+
+        #game-overlay.visible { opacity: 1; visibility: visible; }
+
+        .overlay-content {
+            font-family: 'Fredoka', sans-serif;
+            text-align: center;
+            transform: scale(0);
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        #game-overlay.visible .overlay-content { transform: scale(1); }
+
+        #overlay-main-text { 
+            font-size: 5rem; 
+            font-weight: 900;
+            color: #fff;
+            text-shadow: -4px -4px 0 #000, 4px -4px 0 #000, -4px 4px 0 #000, 4px 4px 0 #000, 0px 8px 0 #000;
+            margin-bottom: 20px;
+            line-height: 1.1;
+            text-transform: uppercase;
+        }
+
+        #game-overlay.lose #overlay-main-text { color: var(--error); }
+        #game-overlay.win #overlay-main-text { color: var(--success); }
+
+        #overlay-duration { 
+            font-size: 1.8rem; 
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
+            color: white;
+            text-shadow: 2px 2px 0 #000;
+            margin-bottom: 30px; 
+        }
+        
+        #overlay-button {
+            background-color: var(--btn-lvl2); 
+            color: #000; 
+            text-shadow: none;
+        }
+
+        /* --- CONTENIDO DE LA CARTA --- */
+        .card-content-wrapper {
+            width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-around; padding: 2px; box-sizing: border-box;
+        }
+
+        .note-title { 
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.2rem; font-weight: 900; color: var(--error); flex-shrink: 0; height: 20%;
+        }
+
+        .staff-container { 
+            display: flex; justify-content: center; align-items: center; height: 80%; flex-grow: 1; position: relative; width: 100%;
+        }
+        
+        .clef-symbol { 
+            position: absolute; font-family: 'Bravura', Arial, sans-serif; font-size: 2.8em; color: black; left: 0px; top: 45%; transform: translateY(-50%); line-height: 1; z-index: 100; 
+        }
+
+        /* --- Animación de Fondo --- */
+        #animated-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 1; overflow: hidden;
+        }
+
+        @keyframes bounce-y {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(300px); }
+        }
+
+        .note-symbol {
+            position: absolute;
+            font-size: 3em; 
+            color: rgba(0, 0, 0, 0.04); 
+            animation: bounce-y 5s infinite alternate ease-in-out; 
+        }
+
+        /* --- CRÉDITO PROFESOR --- */
+        .credito-profesor {
+            margin-top: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 900;
+            font-size: 1.2rem;
+            color: #546e7a;
+            padding-bottom: 0.5rem;
+        }
+
+        @media (max-width: 600px) {
+            h1.mario-title { font-size: 2.8rem; }
+            .game-board { grid-template-columns: repeat(3, 1fr); grid-template-rows: auto; }
+            #overlay-main-text { font-size: 3.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div id="animated-bg"></div>
+
+    <div class="app-container">
+        <h1 class="mario-title">
+            <span class="m-red">S</span><span class="m-blue">U</span><span class="m-yellow">P</span><span class="m-green">E</span><span class="m-red">R</span><br>
+            <span class="m-green">M</span><span class="m-blue">E</span><span class="m-yellow">M</span><span class="m-red">O</span><span class="m-green">R</span><span class="m-blue">I</span><span class="m-yellow">C</span><span class="m-red">E</span>
+        </h1>
+        
+        <div class="game-header">
+            <div class="timer-box">
+                <div class="timer-label">Tiempo Restante</div>
+                <div class="timer-display" id="game-timer">01:00</div>
+                <div class="fuse-bar"><div class="fuse-burn" id="fuse-burn"></div></div>
+            </div>
+            <div class="action-buttons">
+                <button id="start-button" class="btn-main">INICIAR JUEGO</button>
+                <button id="reset-button" class="btn-main">REINICIAR</button>
+            </div>
+        </div>
+        
+        <div id="game-board" class="game-board"></div>
+
+        <div class="credito-profesor">
+            Creado por Profesor Matías Poblete
+        </div>
+    </div>
+
+    <div id="game-overlay">
+        <div class="overlay-content">
+            <div id="overlay-main-text"></div>
+            <div id="overlay-duration"></div>
+            <button id="overlay-button" class="btn-main">REINTENTAR</button>
+        </div>
+    </div>
+
+    <script>
+        // --- LÓGICA INTERNA INTACTA ---
+        const staffTopY = 40; const lineHeight = 10; const halfStepY = 5; const noteRadius = 7; const stemLength = 35; const noteX = 85; const lineStrokeWidth = 1.5; const ledgerLineLength = 30;
+        const CLEF_SYMBOL = '\u{1D11E}'; 
+        const NUM_PAIRS_PER_GAME = 4;
+        const TIME_LIMIT_SECONDS = 60; 
+        const SYMBOLS_TO_BOUNCE = ['\u2669', '\u266B', '\u266A', '\u266C', '\u{1D160}']; 
+
+        const Y_pos = {
+            'do_central': staffTopY + 10 * halfStepY, 're': staffTopY + 9 * halfStepY, 'mi': staffTopY + 8 * halfStepY, 'fa': staffTopY + 7 * halfStepY, 'sol': staffTopY + 6 * halfStepY, 'la': staffTopY + 5 * halfStepY, 'si': staffTopY + 4 * halfStepY, 'do_agudo': staffTopY + 3 * halfStepY, 're_agudo': staffTopY + 2 * halfStepY, 'mi_agudo': staffTopY + 1 * halfStepY, 'fa_agudo': staffTopY + 0 * halfStepY, 'sol_agudo': staffTopY - 1 * halfStepY, 
+        };
+
+        function createStaffSVG(noteYPosition, ledgerLines = 0) {
+            const svgWidth = 120; const svgHeight = 120; 
+            let svgContent = `<svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg">`;
+            
+            for (let i = 0; i < 5; i++) {
+                const y = staffTopY + i * lineHeight;
+                svgContent += `<line x1="10" y1="${y}" x2="${svgWidth - 10}" y2="${y}" stroke="black" stroke-width="${lineStrokeWidth}"/>`;
+            }
+            
+            const stemDirection = -1; 
+            const stemXPosition = noteX + noteRadius; 
+            const stemStartY = noteYPosition; 
+            const stemEndY = noteYPosition + (stemLength * stemDirection); 
+            
+            svgContent += `<line x1="${stemXPosition}" y1="${stemStartY}" x2="${stemXPosition}" y2="${stemEndY}" stroke="black" stroke-width="2"/>`;
+            svgContent += `<ellipse cx="${noteX}" cy="${noteYPosition}" rx="${noteRadius}" ry="5" fill="black"/>`;
+
+            if (ledgerLines !== 0) {
+                const ledgerWidth = ledgerLineLength / 2;
+                if (ledgerLines > 0) { 
+                    for (let i = 0; i < ledgerLines; i++) { 
+                        const currentY = staffTopY + 4 * lineHeight + (i + 1) * lineHeight; 
+                        svgContent += `<line x1="${noteX - ledgerWidth}" y1="${currentY}" x2="${noteX + ledgerWidth}" y2="${currentY}" stroke="black" stroke-width="${lineStrokeWidth}"/>`; 
+                    }
+                } else { 
+                    for (let i = 0; i < Math.abs(ledgerLines); i++) { 
+                        const currentY = staffTopY - (i + 1) * lineHeight; 
+                        svgContent += `<line x1="${noteX - ledgerWidth}" y1="${currentY}" x2="${noteX + ledgerWidth}" y2="${currentY}" stroke="black" stroke-width="${lineStrokeWidth}"/>`; 
+                    }
+                }
+            }
+            svgContent += `</svg>`;
+            return svgContent;
+        }
+
+        const baseCardsPool = [
+            { id: 'do_central', name: 'DO', ledger: 1 }, { id: 're', name: 'RE', ledger: 0 },
+            { id: 'mi', name: 'MI', ledger: 0 }, { id: 'fa', name: 'FA', ledger: 0 },
+            { id: 'sol', name: 'SOL', ledger: 0 }, { id: 'la', name: 'LA', ledger: 0 },
+            { id: 'si', name: 'SI', ledger: 0 }, { id: 'do_agudo', name: 'DO\'', ledger: 0 },
+            { id: 're_agudo', name: 'RE\'', ledger: 0 }, { id: 'mi_agudo', name: 'MI\'', ledger: 0 },
+            { id: 'fa_agudo', name: 'FA\'', ledger: 0 }, { id: 'sol_agudo', name: 'SOL\'', ledger: -1 }, 
+        ].map(card => ({
+            ...card,
+            svg: createStaffSVG(Y_pos[card.id], card.ledger)
+        }));
+
+        let allCardsData = []; 
+        let selectedCards = [];
+        let matchedPairs = 0;
+        let lockBoard = true; 
+        let lastMatchFailed = false; 
+        let timerInterval = null;
+        let timeRemaining = TIME_LIMIT_SECONDS; 
+        let startTime = 0; 
+
+        const gameTimerDisplay = document.getElementById('game-timer');
+        const fuseBurnElement = document.getElementById('fuse-burn');
+        const gameBoard = document.getElementById('game-board');
+        const startButton = document.getElementById('start-button');
+        const resetButton = document.getElementById('reset-button');
+        const animatedBg = document.getElementById('animated-bg');
+        
+        const gameOverlay = document.getElementById('game-overlay');
+        const overlayMainText = document.getElementById('overlay-main-text');
+        const overlayDuration = document.getElementById('overlay-duration');
+        const overlayButton = document.getElementById('overlay-button');
+
+        function startTimer() {
+            if (timerInterval) return; 
+            if (timeRemaining <= 0) timeRemaining = TIME_LIMIT_SECONDS; 
+            
+            gameOverlay.classList.remove('visible', 'win', 'lose');
+            
+            if (matchedPairs === 0 && timeRemaining === TIME_LIMIT_SECONDS) {
+                startTime = Date.now(); 
+            }
+
+            startButton.textContent = 'PAUSAR JUEGO';
+            startButton.style.backgroundColor = '#f39c12'; 
+            
+            timerInterval = setInterval(updateTimer, 1000);
+            lockBoard = false; 
+        }
+
+        function formatDuration(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${minutes} minutos y ${seconds} segundos`;
+        }
+        
+        function displayEndScreen(isWin, durationMs) {
+            const mainText = isWin ? '¡NIVEL SUPERADO!' : '¡TIEMPO AGOTADO!';
+            const durationText = durationMs > 0 ? `Tu tiempo: ${formatDuration(durationMs)}` : '';
+            const buttonText = 'NUEVO JUEGO';
+            
+            overlayMainText.textContent = mainText;
+            overlayDuration.textContent = durationText;
+            overlayButton.textContent = buttonText;
+
+            // Lógica para que desaparezca fantástico si es Timeout
+            if (!isWin) {
+                overlayButton.style.display = 'none';
+                overlayDuration.style.display = 'none';
+            } else {
+                overlayButton.style.display = 'inline-block';
+                overlayDuration.style.display = 'block';
+            }
+
+            gameOverlay.className = '';
+            gameOverlay.classList.add('visible', isWin ? 'win' : 'lose');
+
+            setupGame(false); 
+            
+            startButton.textContent = 'INICIAR JUEGO';
+            startButton.style.backgroundColor = 'var(--success)';
+
+            // Desaparece automáticamente después de 3 segundos si perdemos por tiempo
+            if (!isWin) {
+                setTimeout(() => {
+                    gameOverlay.classList.remove('visible', 'lose');
+                }, 3000);
+            }
+        }
+
+        function stopTimer(isWin = false, reason = 'manual') {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            lockBoard = true; 
+            
+            let duration = 0;
+            if (startTime > 0 && (isWin || reason === 'timeout')) {
+                duration = Date.now() - startTime;
+            }
+
+            const delay = (isWin || reason === 'timeout') ? 50 : 0; 
+
+            setTimeout(() => {
+                if (isWin) {
+                    displayEndScreen(true, duration);
+                } else if (reason === 'timeout') {
+                    displayEndScreen(false, duration);
+                } else {
+                     startButton.textContent = 'REANUDAR JUEGO';
+                     startButton.style.backgroundColor = 'var(--success)';
+                }
+                startTime = 0; 
+            }, delay); 
+        }
+        
+        function updateTimer() {
+            timeRemaining--;
+
+            if (timeRemaining < 0) {
+                stopTimer(false, 'timeout'); 
+                gameTimerDisplay.textContent = '00:00';
+                return;
+            }
+
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            gameTimerDisplay.textContent = 
+                `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            
+            const burnPercentage = (timeRemaining / TIME_LIMIT_SECONDS) * 100;
+            fuseBurnElement.style.width = `${burnPercentage}%`; 
+
+            if (timeRemaining <= 10 && timeRemaining > 0) {
+                gameTimerDisplay.style.color = 'var(--error)';
+            } else if (timeRemaining > 10) {
+                gameTimerDisplay.style.color = 'var(--text-main)';
+            }
+        }
+
+        function renderBoard(cards) {
+            gameBoard.innerHTML = '';
+            cards.forEach((cardData, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.classList.add('card');
+                cardElement.dataset.id = cardData.id; 
+                cardElement.dataset.index = index; 
+                
+                const frontFace = document.createElement('div'); frontFace.classList.add('card-face');
+                
+                const contentWrapper = document.createElement('div');
+                contentWrapper.classList.add('card-content-wrapper');
+
+                const noteTitle = document.createElement('div'); noteTitle.classList.add('note-title'); noteTitle.textContent = cardData.name; contentWrapper.appendChild(noteTitle);
+                
+                const staffContainer = document.createElement('div'); staffContainer.classList.add('staff-container'); 
+                staffContainer.innerHTML = cardData.svg;
+                
+                const clefSymbol = document.createElement('span'); clefSymbol.classList.add('clef-symbol'); clefSymbol.textContent = CLEF_SYMBOL; staffContainer.appendChild(clefSymbol);
+                
+                contentWrapper.appendChild(staffContainer);
+                frontFace.appendChild(contentWrapper);
+
+                const backFace = document.createElement('div'); backFace.classList.add('card-back'); backFace.textContent = '🎵'; 
+                
+                cardElement.appendChild(frontFace);
+                cardElement.appendChild(backFace);
+                cardElement.addEventListener('click', () => flipCard(cardElement, cardData));
+                gameBoard.appendChild(cardElement);
+            });
+        }
+        
+        function initAnimatedBackground() {
+            animatedBg.innerHTML = ''; 
+            for (let i = 0; i < 15; i++) { 
+                const note = document.createElement('span');
+                note.classList.add('note-symbol');
+                note.textContent = SYMBOLS_TO_BOUNCE[Math.floor(Math.random() * SYMBOLS_TO_BOUNCE.length)];
+                note.style.left = `${Math.random() * 100}vw`; 
+                note.style.top = `${Math.random() * 80}vh`; 
+                note.style.animationDuration = `${Math.random() * 3 + 4}s`; 
+                note.style.animationDelay = `${Math.random() * 5}s`; 
+                note.style.fontSize = `${Math.random() * 2 + 3}em`;
+                animatedBg.appendChild(note);
+            }
+        }
+
+        function setupGame(fullReset = true) {
+            selectedCards = [];
+            matchedPairs = 0;
+            lockBoard = true; 
+            lastMatchFailed = false; 
+            
+            gameOverlay.classList.remove('visible', 'win', 'lose');
+
+            if (fullReset) {
+                timeRemaining = TIME_LIMIT_SECONDS;
+                gameTimerDisplay.style.color = 'var(--text-main)';
+                gameTimerDisplay.textContent = '01:00';
+                fuseBurnElement.style.width = '100%';
+            }
+
+            const shuffledPool = [...baseCardsPool].sort(() => 0.5 - Math.random());
+            const randomUniqueCards = shuffledPool.slice(0, NUM_PAIRS_PER_GAME);
+            const doubled = randomUniqueCards.flatMap(card => [
+                { id: card.id, name: card.name, svg: card.svg },
+                { id: card.id, name: card.name, svg: card.svg }
+            ]).sort(() => 0.5 - Math.random());
+            
+            allCardsData = doubled;
+            renderBoard(allCardsData);
+            initAnimatedBackground();
+        }
+
+        function punitiveResetMemory() {
+            const allCards = document.querySelectorAll('.card');
+            allCards.forEach(card => {
+                if (!card.classList.contains('matched')) {
+                    card.classList.remove('flipped'); 
+                    card.style.pointerEvents = 'auto';
+                }
+            });
+            lockBoard = true; 
+            setTimeout(() => { lockBoard = false; }, 500); 
+        }
+
+        function resetAllMatches() {
+            const allMatchedCards = document.querySelectorAll('.card.matched');
+            allMatchedCards.forEach(card => {
+                card.classList.remove('flipped', 'matched');
+                card.style.pointerEvents = 'auto'; 
+            });
+            matchedPairs = 0; 
+        }
+
+        function flipCard(cardElement, cardData) {
+            if (lockBoard || cardElement.classList.contains('flipped') || cardElement.classList.contains('matched') || timerInterval === null) return; 
+
+            if (lastMatchFailed && selectedCards.length === 0) {
+                punitiveResetMemory(); 
+                lastMatchFailed = false;  
+                
+                setTimeout(() => {
+                    if (timerInterval && !lockBoard) { 
+                         cardElement.classList.add('flipped');
+                         selectedCards.push({ element: cardElement, data: cardData });
+                    }
+                }, 100); 
+                return; 
+            }
+
+            cardElement.classList.add('flipped');
+            selectedCards.push({ element: cardElement, data: cardData });
+
+            if (selectedCards.length === 2) {
+                lockBoard = true; 
+                checkForMatch(); 
+            }
+        }
+        
+        function checkForMatch() {
+            const [card1, card2] = selectedCards;
+            const isMatch = card1.data.id === card2.data.id;
+
+            if (isMatch) {
+                card1.element.classList.add('matched'); 
+                card2.element.classList.add('matched');
+                
+                matchedPairs++;
+                lastMatchFailed = false;
+                
+                selectedCards = []; 
+                
+                if (matchedPairs === NUM_PAIRS_PER_GAME) { 
+                    lockBoard = true; 
+                    stopTimer(true); 
+                } else {
+                    lockBoard = false;
+                }
+            } else {
+                setTimeout(() => {
+                    unflipCards(card1.element, card2.element);
+                    
+                    resetAllMatches(); 
+                    
+                    lastMatchFailed = true; 
+                    selectedCards = []; 
+                    lockBoard = false; 
+                }, 1000); 
+            }
+        }
+
+        function unflipCards(card1, card2) {
+            card1.classList.remove('flipped');
+            card2.classList.remove('flipped');
+        }
+        
+        startButton.addEventListener('click', () => {
+            if (timerInterval) {
+                stopTimer(false, 'manual'); 
+            } else {
+                startTimer(); 
+            }
+        });
+        
+        resetButton.addEventListener('click', () => setupGame(true)); 
+        overlayButton.addEventListener('click', startTimer);
+        
+        setupGame(true);
+    </script>
+</body>
+</html>
