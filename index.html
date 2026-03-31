@@ -59,7 +59,7 @@
             max-width: 900px;
             text-align: center;
             position: relative;
-            z-index: 10; /* Sobre el fondo animado */
+            z-index: 10;
         }
 
         /* --- TÍTULO --- */
@@ -200,16 +200,14 @@
             transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         
-        /* Reverso (El bloque amarillo) */
         .card-back { 
             background-color: var(--btn-lvl2); 
             color: #000; 
             font-size: 3.5em; 
             transform: rotateY(0deg); 
-            box-shadow: 0 6px 0px #000; /* Sombra 3D */
+            box-shadow: 0 6px 0px #000;
         }
         
-        /* Frente (El pentagrama) */
         .card-face { 
             background-color: white; 
             transform: rotateY(180deg); 
@@ -232,7 +230,7 @@
             opacity: 0; visibility: hidden;
             background-color: rgba(0, 0, 0, 0.7);
             z-index: 2000; 
-            transition: opacity 0.3s;
+            transition: opacity 0.5s ease-in-out; /* Transición más suave para el desvanecimiento */
         }
 
         #game-overlay.visible { opacity: 1; visibility: visible; }
@@ -266,12 +264,6 @@
             color: white;
             text-shadow: 2px 2px 0 #000;
             margin-bottom: 30px; 
-        }
-        
-        #overlay-button {
-            background-color: var(--btn-lvl2); 
-            color: #000; 
-            text-shadow: none;
         }
 
         /* --- CONTENIDO DE LA CARTA --- */
@@ -362,12 +354,10 @@
         <div class="overlay-content">
             <div id="overlay-main-text"></div>
             <div id="overlay-duration"></div>
-            <button id="overlay-button" class="btn-main">REINTENTAR</button>
         </div>
     </div>
 
     <script>
-        // --- LÓGICA INTERNA INTACTA ---
         const staffTopY = 40; const lineHeight = 10; const halfStepY = 5; const noteRadius = 7; const stemLength = 35; const noteX = 85; const lineStrokeWidth = 1.5; const ledgerLineLength = 30;
         const CLEF_SYMBOL = '\u{1D11E}'; 
         const NUM_PAIRS_PER_GAME = 4;
@@ -444,7 +434,6 @@
         const gameOverlay = document.getElementById('game-overlay');
         const overlayMainText = document.getElementById('overlay-main-text');
         const overlayDuration = document.getElementById('overlay-duration');
-        const overlayButton = document.getElementById('overlay-button');
 
         function startTimer() {
             if (timerInterval) return; 
@@ -471,22 +460,11 @@
         }
         
         function displayEndScreen(isWin, durationMs) {
-            const mainText = isWin ? '¡NIVEL SUPERADO!' : '¡TIEMPO AGOTADO!';
-            const durationText = durationMs > 0 ? `Tu tiempo: ${formatDuration(durationMs)}` : '';
-            const buttonText = 'NUEVO JUEGO';
+            const mainText = isWin ? '¡NIVEL SUPERADO!' : '¡SE ACABÓ EL TIEMPO!';
+            const durationText = isWin && durationMs > 0 ? `Tu tiempo: ${formatDuration(durationMs)}` : '';
             
             overlayMainText.textContent = mainText;
             overlayDuration.textContent = durationText;
-            overlayButton.textContent = buttonText;
-
-            // Lógica para que desaparezca fantástico si es Timeout
-            if (!isWin) {
-                overlayButton.style.display = 'none';
-                overlayDuration.style.display = 'none';
-            } else {
-                overlayButton.style.display = 'inline-block';
-                overlayDuration.style.display = 'block';
-            }
 
             gameOverlay.className = '';
             gameOverlay.classList.add('visible', isWin ? 'win' : 'lose');
@@ -496,12 +474,10 @@
             startButton.textContent = 'INICIAR JUEGO';
             startButton.style.backgroundColor = 'var(--success)';
 
-            // Desaparece automáticamente después de 3 segundos si perdemos por tiempo
-            if (!isWin) {
-                setTimeout(() => {
-                    gameOverlay.classList.remove('visible', 'lose');
-                }, 3000);
-            }
+            // ¡Magia! Se desvanece automáticamente después de 3.5 segundos en AMBOS casos
+            setTimeout(() => {
+                gameOverlay.classList.remove('visible', 'win', 'lose');
+            }, 3500);
         }
 
         function stopTimer(isWin = false, reason = 'manual') {
@@ -605,14 +581,13 @@
             matchedPairs = 0;
             lockBoard = true; 
             lastMatchFailed = false; 
-            
-            gameOverlay.classList.remove('visible', 'win', 'lose');
 
             if (fullReset) {
                 timeRemaining = TIME_LIMIT_SECONDS;
                 gameTimerDisplay.style.color = 'var(--text-main)';
                 gameTimerDisplay.textContent = '01:00';
                 fuseBurnElement.style.width = '100%';
+                gameOverlay.classList.remove('visible', 'win', 'lose');
             }
 
             const shuffledPool = [...baseCardsPool].sort(() => 0.5 - Math.random());
@@ -719,7 +694,6 @@
         });
         
         resetButton.addEventListener('click', () => setupGame(true)); 
-        overlayButton.addEventListener('click', startTimer);
         
         setupGame(true);
     </script>
